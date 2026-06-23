@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" fill="#0a0a0f"/>
+  <path d="M80 60 L100 40 L120 50 L110 80 Z" fill="#ff2d78"/>
+  <path d="M176 60 L156 40 L136 50 L146 80 Z" fill="#00f0ff"/>
+  <path d="M128 90 Q100 100 90 130 L90 180 Q90 200 110 200 L146 200 Q166 200 166 180 L166 130 Q156 100 128 90 Z" fill="#ff2d78"/>
+  <circle cx="110" cy="150" r="8" fill="#0a0a0f"/>
+  <circle cx="146" cy="150" r="8" fill="#0a0a0f"/>
+  <line x1="60" y1="120" x2="90" y2="130" stroke="#00f0ff" stroke-width="2"/>
+  <line x1="50" y1="140" x2="90" y2="150" stroke="#00f0ff" stroke-width="2"/>
+  <line x1="166" y1="130" x2="196" y2="120" stroke="#ff2d78" stroke-width="2"/>
+  <line x1="166" y1="150" x2="206" y2="140" stroke="#ff2d78" stroke-width="2"/>
+  <circle cx="60" cy="120" r="3" fill="#00f0ff"/>
+  <circle cx="50" cy="140" r="3" fill="#00f0ff"/>
+  <circle cx="196" cy="120" r="3" fill="#ff2d78"/>
+  <circle cx="206" cy="140" r="3" fill="#ff2d78"/>
+  <rect x="90" y="130" width="4" height="4" fill="#00f0ff"/>
+  <rect x="162" y="130" width="4" height="4" fill="#ff2d78"/>
+</svg>

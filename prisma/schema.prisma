@@ -1,0 +1,188 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/neko_circuit_website/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  role          String    @default("user")
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  sku            String      @unique
+  name           String
+  description    String
+  price          Float
+  preOrderPrice  Float?
+  image          String?
+  tier           String
+  features       String?
+  includes       String?
+  limitedEdition Boolean     @default(false)
+  maxUnits       Int?
+  unitsSold      Int         @default(0)
+  active         Boolean     @default(true)
+  sortOrder      Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderItems     OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  email           String
+  name            String
+  status          String      @default("pending")
+  total           Float
+  subtotal        Float
+  shipping        Float       @default(0)
+  stripeSessionId String?     @unique
+  stripePaymentId String?
+  shippingMethod  String?
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product @relation(fields: [productId], references: [id])
+  quantity   Int
+  price      Float
+  isPreOrder Boolean @default(false)
+}
+
+model Convention {
+  id          String   @id @default(cuid())
+  name        String
+  city        String
+  state       String
+  venue       String?
+  startDate   DateTime?
+  endDate     DateTime?
+  attendance  Int?
+  website     String?
+  description String?
+  type        String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Character {
+  id          String       @id @default(cuid())
+  name        String
+  series      String
+  birthday    String
+  description String?
+  imageUrl    String?
+  voiceActors VoiceActor[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model VoiceActor {
+  id          String    @id @default(cuid())
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  name        String
+  language    String
+  profileUrl  String?
+  agency      String?
+  createdAt   DateTime  @default(now())
+}
+
+model Vendor {
+  id          String   @id @default(cuid())
+  name        String
+  boothName   String?
+  convention  String
+  boothNumber String?
+  dates       String?
+  category    String
+  instagram   String?
+  tiktok      String?
+  twitter     String?
+  website     String?
+  approved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+}
+
+model EmailSubscription {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+model WatchlistSubscriber {
+  id           String   @id @default(cuid())
+  email        String
+  conventionId String
+  createdAt    DateTime @default(now())
+
+  @@unique([email, conventionId])
+}
