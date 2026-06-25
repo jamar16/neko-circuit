@@ -105,10 +105,25 @@ export default async function ConventionsPage({
   // Fetch conventions server-side (no empty-state flash, edge-cache safe).
   // Exclude local-scene event types (Tournament, Pop-Up, Meetup) — those
   // belong on the Detroit events page, not the main convention schedule.
-  const allConventions = await prisma.convention.findMany({
-    where: CONVENTION_WHERE,
-    orderBy: { startDate: 'asc' },
-  });
+  // Fall back to unfiltered query if the type column isn't migrated yet.
+  let allConventions: Awaited<ReturnType<typeof prisma.convention.findMany>> = [];
+  try {
+    allConventions = await prisma.convention.findMany({
+      where: CONVENTION_WHERE,
+      orderBy: { startDate: 'asc' },
+    });
+    if (allConventions.length === 0) {
+      // type column may be wrong on all rows — fall back to show everything
+      const fallback = await prisma.convention.findMany({ orderBy: { startDate: 'asc' } });
+      if (fallback.length > 0) allConventions = fallback;
+    }
+  } catch {
+    try {
+      allConventions = await prisma.convention.findMany({ orderBy: { startDate: 'asc' } });
+    } catch (e2) {
+      console.error('[CONVENTIONS] DB query failed:', e2 instanceof Error ? e2.message : e2);
+    }
+  }
   const conventionCount = allConventions.length;
 
   // If a valid state param is present, filter for SSR crawlable list

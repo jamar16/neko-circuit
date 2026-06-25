@@ -171,7 +171,7 @@ async function main() {
           attendance: c.attendance,
           website: c.website ?? existing.website,
           featured: c.featured,
-          ...(c.type !== undefined ? { type: c.type } : {}),
+          type: c.type !== undefined ? (c.type ?? null) : null,
           ...(c.description !== undefined ? { description: c.description } : {}),
         },
       });
@@ -187,7 +187,7 @@ async function main() {
           attendance: c.attendance,
           website: c.website,
           featured: c.featured,
-          ...(c.type !== undefined ? { type: c.type } : {}),
+          type: c.type !== undefined ? (c.type ?? null) : null,
           ...(c.description !== undefined ? { description: c.description } : {}),
         },
       });
