@@ -18,6 +18,7 @@ kind -> media file under https://dateanime.com/social/ and platforms:
   square  {slug}_IG_square.png   FB + IG   POST
   reel    {slug}_reel.mp4        FB + IG + TikTok   REEL
   story   {slug}_reel.mp4        FB + IG   STORY   (reel mp4 carries the music)
+  story_png {slug}_IG_story.png  FB + IG   STORY   (silent; use when no video exists)
   tiktok  {slug}_tiktok.mp4      TikTok only
 
 Safety: refuses past dates, empty captions, and em dashes (same rules as
@@ -43,6 +44,7 @@ KINDS = {
     "square": ("{slug}_IG_square.png", dict(Facebook="true", Instagram="true", TikTok="false"), "POST"),
     "reel": ("{slug}_reel.mp4", dict(Facebook="true", Instagram="true", TikTok="true"), "REEL"),
     "story": ("{slug}_reel.mp4", dict(Facebook="true", Instagram="true", TikTok="false"), "STORY"),
+    "story_png": ("{slug}_IG_story.png", dict(Facebook="true", Instagram="true", TikTok="false"), "STORY"),
     "tiktok": ("{slug}_tiktok.mp4", dict(Facebook="false", Instagram="false", TikTok="true"), None),
 }
 
