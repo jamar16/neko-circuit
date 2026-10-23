@@ -38,3 +38,9 @@ yarn-error.log*
 
 # === Misc ===
 .vercel
+
+# === Neko Circuit engine ===
+engine/cards/music/
+engine/cards/outputs/
+__pycache__/
+*.pyc

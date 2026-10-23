@@ -1,3 +1,5 @@
+> **Engine:** this repo also hosts the Neko Circuit event automation in `engine/` and the published post media in `media/`. See [engine/README.md](engine/README.md).
+
 # Neko Circuit
 
 E-commerce and convention hub for the Midwest anime community. Customers browse and purchase limited-edition anime calendar sets, track the full Midwest convention schedule, join a watchlist for specific events, register as vendors, and get birthday features — all in one place.

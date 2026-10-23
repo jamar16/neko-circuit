@@ -1,0 +1,32 @@
+# Daily posting-gap alarm. Fails (GitHub emails the owner) when a verified or
+# carded event within 21 days has no scheduled post. Odd minute on purpose:
+# GitHub delays scheduled runs at the top of the hour. The weekly heartbeat
+# commit keeps GitHub from disabling the schedule after 60 days of no activity.
+name: Engine daily check
+on:
+  schedule:
+    - cron: '23 12 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Posting gaps (fails if any)
+        run: python3 engine/scripts/events.py due --strict
+      - name: Heartbeat
+        if: always()
+        run: |
+          date +%G-W%V > engine/data/.heartbeat
+          if ! git diff --quiet -- engine/data/.heartbeat; then
+            git config user.name "neko-engine"
+            git config user.email "engine@users.noreply.github.com"
+            git add engine/data/.heartbeat
+            git commit -m "engine heartbeat $(cat engine/data/.heartbeat)"
+            git push
+          fi
