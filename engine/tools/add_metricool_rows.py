@@ -9,6 +9,11 @@ same date, time, media URL and post type is skipped.
 
 Usage:
   add_metricool_rows.py PLAN.json [--csv PATH] [--dry-run] [--no-check-urls]
+                        [--events PATH] [--no-mark]
+
+After the rows are written (or found already present), the event whose card_slug
+equals the plan's slug moves verified/carded -> scheduled in the event store, so
+the daily gap check stops flagging it. --no-mark skips that.
 
 Plan file: {"slug": "YOUMACON", "alt": "Youmacon card, ...", "posts": [
     {"date": "2026-10-20", "time": "18:00", "kind": "square", "caption": "..."},
@@ -63,6 +68,9 @@ def main():
     ap.add_argument("--csv", default=str(DEFAULT_CSV))
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-check-urls", action="store_true")
+    ap.add_argument("--events", default=str(HERE.parent / "data" / "events.csv"),
+                    help="event store to update (default: engine/data/events.csv)")
+    ap.add_argument("--no-mark", action="store_true", help="do not mark the event scheduled")
     a = ap.parse_args()
 
     plan = json.loads(Path(a.plan).read_text())
@@ -97,14 +105,37 @@ def main():
         new.append(row)
 
     print(f"{len(new)} new row(s) for {slug}")
-    if a.dry_run or not new:
+    if a.dry_run:
         return
-    with path.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
-        for r in new:
-            w.writerow(r)
-    rc = subprocess.call([sys.executable, str(HERE / "validate_metricool_csv.py"), str(path)])
+    if new:
+        with path.open("a", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            for r in new:
+                w.writerow(r)
+        rc = subprocess.call([sys.executable, str(HERE / "validate_metricool_csv.py"), str(path)])
+    else:
+        rc = 0
+    if not a.no_mark:  # rows are in the CSV either way, so record that even if the validator flags other rows
+        mark_scheduled(slug, Path(a.events))
     sys.exit(rc)
+
+
+def mark_scheduled(slug, events_csv):
+    """Move the event whose card_slug matches to `scheduled` so the daily gap check passes."""
+    sys.path.insert(0, str(HERE.parent / "scripts"))
+    import events
+
+    events.DATA = events_csv
+    rows = events.load()
+    hits = [r for r in rows if r["card_slug"] == slug and r["status"] in events.NEEDS_POST
+            and (events.parse_date(r["start"]) or date.max) >= date.today()]
+    for r in hits:
+        events.apply_set(r, ["status=scheduled"])
+        print(f"event store: {r['id']} -> scheduled")
+    if hits:
+        events.save(rows)
+    else:
+        print(f"event store: no verified/carded upcoming event with card_slug {slug} (nothing to mark)")
 
 
 if __name__ == "__main__":
