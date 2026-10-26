@@ -8,7 +8,9 @@ Checks, for each upcoming active event in the event store:
   organizer_url   must answer 200 (after redirects). Social-only hosts
                   (Instagram, Facebook, Linktree, ...) cannot be fetched
                   reliably, so they are reported as SOCIAL (needs a hand check),
-                  not as a failure.
+                  not as a failure. Any other organizer site that refuses the
+                  checker (HTTP 401/403/406/429 or a dropped connection) is
+                  reported as HAND, also not a failure, until told otherwise.
 and, with --metricool, for each future-dated row of a Metricool import CSV:
   Picture Url 1   must answer 200 (the card is actually deployed).
 
@@ -28,6 +30,7 @@ Uses GET, not HEAD: several event sites answer HEAD with an error but serve the 
 """
 import argparse
 import csv
+import socket
 import sys
 import urllib.error
 import urllib.request
@@ -42,6 +45,11 @@ SOCIAL_HOSTS = ("instagram.com", "facebook.com", "fb.com", "linktr.ee", "tiktok.
 UA = {"User-Agent": "Mozilla/5.0 (compatible; NekoCircuitLinkCheck/1.0)"}
 
 
+# Statuses a site sends to refuse an automated client; the page may be fine in a browser.
+REFUSED = {401, 403, 406, 429}
+REFUSED_CODE = -1  # fetch() result for a dropped connection, treated like REFUSED
+
+
 def fetch(url, timeout):
     """Return (status or None, note). Follows redirects."""
     req = urllib.request.Request(url, headers=UA)
@@ -50,7 +58,12 @@ def fetch(url, timeout):
             return resp.status, ""
     except urllib.error.HTTPError as e:
         return e.code, e.reason if isinstance(e.reason, str) else ""
-    except Exception as e:  # DNS, timeout, TLS
+    except urllib.error.URLError as e:
+        r = e.reason
+        if isinstance(r, socket.gaierror) or isinstance(r, socket.timeout):
+            return None, type(r).__name__  # real failure: no such host / too slow
+        return REFUSED_CODE, type(r).__name__  # reset, refused, TLS: server turned us away
+    except Exception as e:
         return None, type(e).__name__
 
 
@@ -108,6 +121,9 @@ def main():
             if code == 200:
                 print(f"{'OK':<8} {name:<46} {url}")
                 oks += 1
+            elif code in REFUSED or code == REFUSED_CODE:
+                print(f"{'HAND':<8} {name:<46} {url}  <- site refused the checker ({code if code > 0 else note}), check by hand")
+                warns += 1
             else:
                 print(f"{'FAIL':<8} {name:<46} {url}  [{code or note}]")
                 fails += 1
