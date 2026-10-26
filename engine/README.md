@@ -9,7 +9,8 @@ as the website code (the repo root is the site backup; nothing here affects the 
 | `scripts/events.py` | The event store CLI (`list`, `add`, `set`, `review`, `expire`, `due`, `plan`, `scorecard`). `due --strict` exits 1 when a verified event within 21 days has no post. No AI. |
 | `data/events.csv` | One row per event. Copied from the private working repo for now (one-way). |
 | `cards/make_cards.py` | Generates the 4 files per event (square, story, reel, TikTok) from a CSV. Fonts and base template included. Music is not (licensed per track, kept out of git). |
-| `tools/add_metricool_rows.py` | Turns a small JSON plan into Metricool CSV rows and refuses unhosted images, past dates, empty captions and em dashes. |
+| `tools/add_metricool_rows.py` | Turns a small JSON plan into Metricool CSV rows and refuses unhosted images, past dates, empty captions and em dashes. Afterward it marks the event (matched by `card_slug`) `scheduled` in the store; `--no-mark` skips that, `--events PATH` picks another store. |
+| `tools/check_links.py` | Read-only link check: every upcoming event's `organizer_url` and the media URLs in the Metricool CSV must return 200. Exits 1 on a broken link or a verified event with no organizer URL. Flags: `--events`, `--metricool`, `--days`, `--all`. Stdlib only. |
 | `tools/validate_metricool_csv.py` | Guard run before every Metricool import. |
 | `plans/` | Per-event post plans (dates, times, captions). |
 | `../media/social/` | Published to GitHub Pages by `.github/workflows/pages.yml`. Only this folder is public-hosted. |
